@@ -1,9 +1,10 @@
 
 % Greedy equivalence search
-function [Record] = GES(X,score_type,maxP,parameters)
+function [Record] = GES(X,score_type,multi_sign,maxP,parameters)
 % INPUT:
 % X: Data with T*D dimensions
 % score_type: the score function you want to use
+% multi_sign: 1: if are multi-dimensional variables; 0: otherwise
 % maxP: allowed maximum number of parents when searching the graph
 % parameters: when using CV likelihood, 
 %               parameters.kfold: k-fold cross validation
@@ -17,24 +18,49 @@ function [Record] = GES(X,score_type,maxP,parameters)
 % Record.G_step2: learned graph at each step in the backward step
 % Record.score: the score of the learned graph
 
-
-if(score_type == 1) % k-fold negative cross validated likelihood based on regression in RKHS
+if(score_type == 1 & multi_sign == 0) % k-fold negative cross validated likelihood based on regression in RKHS
     score_func = 'local_score_CV_general'; 
-    if(nargin<4)
+    if(nargin<5)
         parameters.kfold = 10; % 10 fold cross validation
         parameters.lambda = 0.01; % regularization parameter
     end
 end
-if(score_type == 2) % negative marginal likelihood based on regression in RKHS
+if(score_type == 2 & multi_sign == 0) % negative marginal likelihood based on regression in RKHS
     score_func = 'local_score_marginal_general';
     parameters = [];
 end
-
-if(nargin<3)
-    maxP = size(X,2)/2; % maximum number of parents
+if(score_type == 1 & multi_sign == 1) % k-fold negative cross validated likelihood based on regression in RKHS
+    score_func = 'local_score_CV_multi'; % for data with multi-variate dimensions 
+    if(nargin<5)
+        parameters.kfold = 10; % 10 fold cross validation
+        parameters.lambda = 0.01; % regularization parameter
+        for i = 1:size(X,2)
+            parameters.dlabel{i} = i;
+        end
+    end
+end
+if(score_type == 2 & multi_sign == 1) % negative marginal likelihood based on regression in RKHS
+    score_func = 'local_score_marginal_multi'; % for data with multi-variate dimensions
+    if(nargin<5)
+        for i = 1:size(X,2)
+            parameters.dlabel{i} = i;
+        end
+    end
 end
 
-N = size(X,2); % number of variables
+if(nargin<3)
+    if(~multi_sign)
+    maxP = size(X,2)/2; % maximum number of parents
+    else
+        maxP = length(parameters.dlabel)/2;
+    end
+end
+
+if(~multi_sign)
+    N = size(X,2); % number of variables
+else
+    N = length(parameters.dlabel);
+end
 G = zeros(N,N); % initialize the graph structure
 score = Score_G(X,G,score_func,parameters); % initialize the score
 G = PDAG2DAG(G);
