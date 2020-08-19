@@ -35,7 +35,7 @@ function [Record] = GES(X,score_type,multi_sign,maxP,parameters)
 
 
 ### EXAMPLE:
-see example1.m
+see example1.m and example2.m (for data with multi-variate dimensions)
 
 
 ### CITATION:
