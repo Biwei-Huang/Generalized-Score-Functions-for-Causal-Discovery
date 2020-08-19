@@ -10,9 +10,12 @@ Causal structure learning by greedy equivalence search with generalized score fu
 %               score_type = 2: marginal likelihood
 % multi_sign: 1: if are multi-dimensional variables; 0: otherwise
 % maxP: allowed maximum number of parents when searching the graph
-% parameters: when using CV likelihood, 
+% parameters: 
+%            when using CV likelihood, 
 %               parameters.kfold: k-fold cross validation
 %               parameters.lambda: regularization parameter
+%            parameters.dlabel: for variables with multi-dimensions,
+%                               indicate which dimensions belong to the i-th variable.
 
 % OUTPUT:
 % Record.G: learned causal graph
