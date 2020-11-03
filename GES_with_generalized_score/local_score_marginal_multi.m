@@ -33,6 +33,7 @@ eix = eix(:,IIx);
 if(~isempty(PAi))    
     % set the kernel for PA
     PA_all = [];
+    widthPA_all = [];
     for m = 1:length(PAi)
         PA = Data(:,parameters.dlabel{PAi(m)});
         PA_all = [PA_all, PA];
@@ -42,12 +43,13 @@ if(~isempty(PAi))
         dists = Q + R - 2*PA*PA';
         dists = dists-tril(dists);
         dists=reshape(dists,T^2,1);
-        widthPA(m) = sqrt(0.5*median(dists(dists>0)));
+        widthPA = sqrt(0.5*median(dists(dists>0)));
+        widthPA_all = [widthPA_all, widthPA*ones(1,length(parameters.dlabel{PAi(m)}))];
     end
-    widthPA = widthPA*2.5; % kernel width
+    widthPA_all = widthPA_all*2.5; % kernel width
     
     covfunc = {'covSum', {'covSEard','covNoise'}};
-    logtheta0 = [log(widthPA'); 0; log(sqrt(0.1))];
+    logtheta0 = [log(widthPA_all'); 0; log(sqrt(0.1))];
     [logtheta, fvals, iter] = minimize(logtheta0, 'gpr_multi_new', -300, covfunc, PA_all, 2*sqrt(T) *eix * diag(sqrt(eig_Kx))/sqrt(eig_Kx(1)));
     
     [nlml dnlml] = gpr_multi_new(logtheta, covfunc, PA_all, 2*sqrt(T) *eix * diag(sqrt(eig_Kx))/sqrt(eig_Kx(1)));
